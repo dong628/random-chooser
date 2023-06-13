@@ -91,20 +91,6 @@ for button in data:
         cbs.append(tk.Button(bf, text="%s * %d"%(button[0], ex), command=lambda ex=ex, ix=data.index(button):calln(ex, ix), font=default_font))
         cbs[-1].grid(row=button[3][button[2].index(ex)][0], column=button[3][button[2].index(ex)][1], sticky=tk.W+tk.E)
 
-'''
-call_button = tk.Button(bf, text='点名', command=lambda:calln(1), font=default_font)
-call_button.grid(row=0, column=0, sticky=tk.W+tk.E)
-call_button = tk.Button(bf, text='点名*4', command=lambda:calln(4), font=default_font)
-call_button.grid(row=1, column=0, sticky=tk.W+tk.E)
-call_button = tk.Button(bf, text='点名*10', command=lambda:calln(10), font=default_font)
-call_button.grid(row=2, column=0, sticky=tk.W+tk.E)
-'''
-
-'''
-# 创建退出按钮
-quit_button = tk.Button(bf, text='退出', command=quitx, font=default_font)
-quit_button.grid(row=3, column=0, sticky=tk.W+tk.E)
-'''
 
 # 绑定快捷键
 bf.bind("<Key>", callback)
