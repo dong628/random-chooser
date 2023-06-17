@@ -1,120 +1,127 @@
 # -*- coding: UTF-8 -*-
 import tkinter as tk
-import random
-import json
+import xlsx_io as io
+import random_lib as rlib
 import pickle as p
+import yaml
 
-default_font = ('微软雅黑', 26)
-default_help = "使用数字键快速生成指定数量的名字~"
+with open("config.yml", 'r', encoding="utf-8") as f:
+    config = yaml.load(f.read(), Loader=yaml.CLoader)
 
 # 读取文件中的信息
-try:
-    with open('config.pkl', 'rb') as f:
-        print("Load from config.pkl\n")
-        data = p.load(f)
-        print(data)
-except FileNotFoundError:
-    with open('config.json', 'r', encoding='utf-8') as f:
-        print("Warning: Load from config.json\n")
-        pkl = open("config.pkl", 'wb')
-        data = json.loads(f.read())
-        p.dump(data, pkl)
-        pkl.close()
-        print(data)
+data = io.decode(config["meta"], config["names"])
+if(data == -1):
+    print("元数据未找到")
+    exit()
+if(data == -2):
+    print("名单未找到")
+    exit()
+if(data == -2):
+    print("元数据与名单不匹配，请检查工作表名是否一致")
+    exit()
     
 # 创建主窗口
 root = tk.Tk()
-root.title('天选时刻')
-#root.geometry('500x500')
+root.title(config["title"])
 
-# 创建显示区域
-tf = tk.Frame(root)
-tf.grid(row=0, column=0, sticky=tk.W)
+# 创建文字显示区域
+text_frame = tk.Frame(root)
+text_frame.grid(row=0, column=0, sticky=tk.W)
 
-display = tk.Label(tf, width=40, height=8, font=default_font, wraplength=800, anchor=tk.CENTER)
-display.grid(row=1, column=0, sticky=tk.W)
-
-helptext = tk.Label(tf, font=('微软雅黑', 20), anchor=tk.CENTER, text=default_help)
+# 帮助文字显示区域
+helptext = tk.Label(text_frame, font=config["help_font"], anchor=tk.CENTER, text=config["help"])
 helptext.grid(row=0, column=0)
+# 主显示区域
+display = tk.Label(text_frame, width=40, height=8, font=config["display_font"], wraplength=800, anchor=tk.CENTER)
+display.grid(row=1, column=0, sticky=tk.W)
+# 计数显示区域
+helpcnt = tk.Label(text_frame, font=config["count_font"], anchor=tk.CENTER)
+helpcnt.grid(row=2, column=0)
 
-tff = tk.Frame(tf)
-tff.grid(row=2, column=0)
-helpcnt = tk.Label(tff, font=('微软雅黑', 20), anchor=tk.CENTER)
-helpcnt.grid(row=0, column=0)
+# 创建按钮显示区域
+button_frame = tk.Frame(root)
+button_frame.grid(row=0, column=1, sticky=tk.E)
+# 切换点名方式按钮显示区域
+switch_frame = tk.LabelFrame(button_frame, text="点击按钮切换点名方式", font=config["switch_help_font"])
+switch_frame.grid(row=0, column=0, sticky=tk.N)
+# 点名按钮显示区域
+choices_frame = tk.LabelFrame(button_frame)
+choices_frame.grid(row=1, column=0)
 
-curind = 0
-cnt = 0
-namesl = data[0][1].split().copy()
-random.shuffle(namesl)
-names = str()
+# 创建各组random类
+random_sheets = dict()
+for sheet in data.keys():
+    random_sheets[sheet] = rlib.Names(data[sheet]["names"])
 
 # 定义点名按钮的回调函数
-def calln(n, ind):
-    print('ind: ', ind)
-    global names, namesl, cnt, curind
-    if(hold.get() or ind != curind):
-        curind = ind
-        namesl = data[ind][1].split().copy()
-        random.shuffle(namesl)
-        names = str()
-        cnt = 0
-    for i in range(n):
-        try:
-            names += ' ' + namesl.pop()
-            cnt += 1
-        except KeyError:
-            pass
-    display.config(text=names)
-    helpcnt.config(text="当前数量：" + str(cnt))
-
-# 定义退出按钮的回调函数
-def quitx():
-    root.destroy()
+cur_sheet = None
+def call_pick(n, group, sheet):
+    global cur_sheet
+    if hold.get() == 1 or sheet != cur_sheet:
+        cur_sheet = sheet
+        random_sheets[sheet].refresh()
+    random_sheets[sheet].add(group, n)
+    display.config(text=random_sheets[sheet].output())
+    helpcnt.config(text="当前数量：" + str(random_sheets[sheet].count()))
 
 # 快捷生成函数
 def callback(event):
+    global config
     print(repr(event.char))
     try:
         num = int(event.char)
     except ValueError:
         return
-    calln(num, 0)
-
-bf = tk.Frame(root)
-bf.grid(row=0, column=1, sticky=tk.E)
+    call_pick(num, config["shortcut_sheet"], config["shortcut_sheet"])
 
 # 创建点名按钮
-cbs = list()
-for button in data:
-    for ex in button[2]:
-        print("append", button[0], ex, "calln(", ex, ',', data.index(button), ")")
-        cbs.append(tk.Button(bf, text="%s * %d"%(button[0], ex), command=lambda ex=ex, ix=data.index(button):calln(ex, ix), font=default_font))
-        cbs[-1].grid(row=button[3][button[2].index(ex)][0], column=button[3][button[2].index(ex)][1], sticky=tk.W+tk.E)
+grid_map = dict()
+buttons = dict()
+for sheet in data.keys():
+    buttons[sheet] = dict()
+    grid_map[sheet] = rlib.GridMap(int(config["maxcol"]))
+    for group in data[sheet]["names"].keys():
+        buttons[sheet][group] = list()
+        for count in data[sheet]["count"][group]:
+            buttons[sheet][group].append(tk.Button(choices_frame, text="%s * %d"%(group, count), command=lambda cnt=count, group=group, sheet=sheet:call_pick(cnt, group, sheet), font=config["button_font"]))
+            grid_map[sheet].next()
+            buttons[sheet][group][-1].grid(row=grid_map[sheet].row(), column=grid_map[sheet].col())
+            buttons[sheet][group][-1].grid_remove()
+        if len(data[sheet]["count"][group]) != 1:
+            grid_map[sheet].nextline()
 
-'''
-call_button = tk.Button(bf, text='点名', command=lambda:calln(1), font=default_font)
-call_button.grid(row=0, column=0, sticky=tk.W+tk.E)
-call_button = tk.Button(bf, text='点名*4', command=lambda:calln(4), font=default_font)
-call_button.grid(row=1, column=0, sticky=tk.W+tk.E)
-call_button = tk.Button(bf, text='点名*10', command=lambda:calln(10), font=default_font)
-call_button.grid(row=2, column=0, sticky=tk.W+tk.E)
-'''
-
-'''
-# 创建退出按钮
-quit_button = tk.Button(bf, text='退出', command=quitx, font=default_font)
-quit_button.grid(row=3, column=0, sticky=tk.W+tk.E)
-'''
+active = None
+# 切换点名方式回调函数
+def call_switch(sheet):
+    global active
+    if active != None:
+        for group in buttons[active].keys():
+            for button in buttons[active][group]:
+                button.grid_remove()
+    print(buttons)
+    for group in buttons[sheet].keys():
+        print(group)
+        for button in buttons[sheet][group]:
+            button.grid()
+    active = sheet
 
 # 绑定快捷键
-bf.bind("<Key>", callback)
-bf.focus_set()
+button_frame.bind("<Key>", callback)
+button_frame.focus_set()
+
+# 添加切换按钮
+keymap = list(data.keys())
+cur_sheet = tk.IntVar()
+for sheet_id in range(len(keymap)):
+    temp = tk.Radiobutton(switch_frame, text="通过%s"%keymap[sheet_id], variable=cur_sheet, font=config["switch_font"], value=sheet_id, command=lambda sheet_id=sheet_id:call_switch(keymap[sheet_id]), indicatoron=False)
+    temp.grid(row=0, column=sheet_id)
+call_switch(keymap[0])
 
 # “滞留”选项
 hold = tk.IntVar()
 hold.set(1)
-hold_check = tk.Checkbutton(tff, text='生成时清除原内容', variable = hold, font=('微软雅黑', 22), indicatoron=False)
-hold_check.grid(row=0, column=3, padx=50)
+hold_check = tk.Checkbutton(switch_frame, text='生成时清除原内容', variable = hold, font=config["hold_font"], indicatoron=False)
+hold_check.grid(row=1, column=0, padx=50)
 
-calln(1, 0)
+# mainloop
 root.mainloop()
