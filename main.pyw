@@ -9,16 +9,24 @@ with open("config.yml", 'r', encoding="utf-8") as f:
     config = yaml.load(f.read(), Loader=yaml.CLoader)
 
 # 读取文件中的信息
-data = io.decode(config["meta"], config["names"])
+if("meta" not in config or "names" not in config):
+    data = io.name_load_pkl(config["pkldir"])
+else:
+    data = io.decode(config["meta"], config["names"])
 if(data == -1):
-    print("元数据未找到")
-    exit()
-if(data == -2):
-    print("名单未找到")
-    exit()
-if(data == -3):
+    print("元数据未找到，从二进制文件中读取")
+    data = io.name_load_pkl(config["pkldir"])
+elif(data == -2):
+    print("名单未找到，从二进制文件中读取")
+    data = io.name_load_pkl(config["pkldir"])
+elif(data == -3):
     print("元数据与名单不匹配，请检查工作表名是否一致")
     exit()
+elif(data == 0):
+    print("未找到openpyxl模块，从二进制文件中读取")
+    data = io.name_load(config["pkldir"])
+else:
+    io.name_dump_pkl(data, config["pkldir"])
     
 # 创建主窗口
 root = tk.Tk()
@@ -67,6 +75,7 @@ def call_pick(n, group, sheet):
     display.config(text=random_sheets[sheet].output())
     helpcnt.config(text="当前数量：" + str(random_sheets[sheet].count()))
 
+# 定义清空按钮的回调函数
 def clear():
     global cur_sheet
     random_sheets[cur_sheet].refresh()

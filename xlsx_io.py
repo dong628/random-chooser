@@ -25,11 +25,14 @@
 }
 '''
 
-import openpyxl as xl
 import pickle
 
 # 解码 xlsx 数据
 def decode(fn_meta, fn_names):
+    try:
+        import openpyxl as xl
+    except ImportError:
+        return 0
     # 元数据未找到返回-1，名单未找到返回-2
     try:
         file_meta = xl.load_workbook(fn_meta)
@@ -64,12 +67,12 @@ def decode(fn_meta, fn_names):
     return data
 
 # 转储数据到 pickle 文件中
-def name_dump(data, pkl_file):
+def name_dump_pkl(data, pkl_file):
     with open(pkl_file, 'wb') as f:
         pickle.dump(data, f)
 
 # 从 pickle 文件中读取数据
-def name_load(pkl_file):
+def name_load_pkl(pkl_file):
     try:
         with open(pkl_file, 'rb') as f:
             data = pickle.load(f)
