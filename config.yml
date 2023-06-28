@@ -1,5 +1,6 @@
-names: ./config/names.xlsx
-meta: ./config/meta.xlsx
+names: ./config/names1.xlsx
+meta: ./config/meta1.xlsx
+pkldir: ./config/data.pkl
 title: 天选时刻
 help: 使用数字键快速生成指定数量的名字~
 help_font: ['微软雅黑', 20]
@@ -10,4 +11,5 @@ button_font: ['微软雅黑', 26]
 hold_font: ['微软雅黑', 19]
 switch_font: ['微软雅黑', 23]
 shortcut_sheet: 分组
+shortcut_group: 一组
 maxcol: 3

@@ -37,7 +37,9 @@ class GridMap:
         self.maxcol = maxcol
         self.currow = 0
         self.curcol = 0
-    def next(self):
+    def __iter__(self):
+        return self
+    def __next__(self):
         if self.curcol == self.maxcol:
             self.curcol = 0
             self.currow += 1
@@ -68,14 +70,14 @@ def test_Names():
     print("Test 6: ", test.output())
 
 def test_GridMap():
-    grid = GridMap(4)
-    grid.next()
-    grid.next()
-    grid.next()
-    grid.next()
+    grid = iter(GridMap(4))
+    next(grid)
+    next(grid)
+    next(grid)
+    next(grid)
     print("Test 1: %d - %d" % (grid.row(), grid.col()))
-    grid.next()
-    grid.next()
+    next(grid)
+    next(grid)
     print("Test 2: %d - %d" % (grid.row(), grid.col()))
     grid.nextline()
     print("Test 3: %d - %d" % (grid.row(), grid.col()))
