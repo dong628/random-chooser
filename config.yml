@@ -11,4 +11,5 @@ button_font: ['微软雅黑', 26]
 hold_font: ['微软雅黑', 19]
 switch_font: ['微软雅黑', 23]
 shortcut_sheet: 分组
+shortcut_group: 一组
 maxcol: 3
