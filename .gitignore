@@ -2,3 +2,5 @@ config
 __pycache__/random_lib.cpython-311.pyc
 __pycache__/xlsx_io.cpython-311.pyc
 tktest.py
+xlsx_io.py
+__pycache__/buttons.cpython-311.pyc
