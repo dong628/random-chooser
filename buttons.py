@@ -29,7 +29,7 @@ class Switch:
         for sheet_id in range(len(self.keymap)):
             temp = tk.Radiobutton(frame, text="%s"%self.keymap[sheet_id], font=font,\
                                 variable=self.chosen, value=sheet_id, command=lambda sheet_id=sheet_id:self.call_switch(self.keymap[sheet_id]), indicatoron=False)
-            temp.grid(row=0, column=sheet_id, padx=10, pady=10)
+            temp.grid(row=0, column=sheet_id, padx=10, pady=10, ipadx=5, ipady=5)
     # 切换分组方式方法
     def call_switch(self, sheet):
         if self.active != None:

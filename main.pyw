@@ -112,11 +112,13 @@ switches.call_switch(list(data.keys())[0])
 # “滞留”选项
 hold = tk.IntVar()
 hold.set(1)
-hold_check = tk.Checkbutton(options_frame, text='生成时清除原内容', variable = hold, font=config["hold_font"], indicatoron=False)
+hold_check = tk.Checkbutton(options_frame, text='生成时清除原内容', padx=5, pady=5,\
+                            variable = hold, font=config["hold_font"], indicatoron=False)
 hold_check.grid(row=0, column=0)
 
 # 清空按钮
-clear_button = tk.Button(options_frame, text='清空当前内容', font=config["hold_font"], command=clear)
+clear_button = tk.Button(options_frame, text='清空当前内容', padx=5, pady=2,\
+                         font=config["hold_font"], command=clear)
 clear_button.grid(row=0, column=1, padx=10, pady=15)
 
 # mainloop
